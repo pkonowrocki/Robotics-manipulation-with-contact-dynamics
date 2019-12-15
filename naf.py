@@ -62,7 +62,7 @@ class NAF:
         return loss.item(), 0
 
     def saveModel(self, modelPath):
-        torch.save(self.model.cpu().state_dict(), modelPath)
+        torch.save(self.model.state_dict(), modelPath)
         
     def loadModel(self, modelPath):
         self.model.load_state_dict(torch.load(modelPath))
