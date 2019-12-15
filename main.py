@@ -54,10 +54,11 @@ for episode in range(numEpisodes):
 
     state = stateToTensor(state).to(device=device)
     episodeReward = 0
-
+    valueLossEp = 0
+    updatesEpisode = 0
     while True:
         action = agent.selectAction(state, None, None)
-        nextState, reward, done, _ = env.step(action.numpy()[0])
+        nextState, reward, done, _ = env.step(action.cpu().numpy()[0])
         totalNumSteps += 1
         episodeReward += reward
 
@@ -71,20 +72,21 @@ for episode in range(numEpisodes):
         state = nextState
 
         if len(memory) > batchSize:
+            
             for _ in range(updatesPerStep):
                 transition = memory.sample(batchSize)
                 batch = Transition(*zip(*transition))
-
+                updatesEpisode += 1
                 valueLoss, policyLoss = agent.updateParameters(batch)
-                with open(f"models/{run}_h{hiddenSize}_b{batchSize}/{run}_networkLearning.csv", "a+") as f:
-                    f.write(f'{updates}, {valueLoss}, {policyLoss}\n')
+                valueLossEp += valueLoss
                 updates += 1
         
         if done:
             break
         
     rewards.append(episodeReward)
-    if episode % 10 == 0:
+    checkEvery = 20
+    if episode % checkEvery == 0:
         state = env.reset()
         state = stateToTensor(state).to(device=device)
         episodeReward = 0
@@ -103,6 +105,6 @@ for episode in range(numEpisodes):
         
         # print(f"Episode: {episode+1}, total numsteps: {totalNumSteps}, reward: {rewards[-1]}, average reward: {np.mean(rewards)}")
         with open(f"models/{run}_h{hiddenSize}_b{batchSize}/{run}_agentTraining.csv", "a+") as f:
-            f.write(f'{episode}, {totalNumSteps}, {reward}, {np.mean(rewards)}\n')
+            f.write(f'{episode}, {totalNumSteps}, {episodeReward/checkEvery}, {np.mean(rewards)/checkEvery}, {valueLossEp/updatesEpisode}\n')
 
 env.close()
