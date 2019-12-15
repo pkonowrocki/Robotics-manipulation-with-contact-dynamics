@@ -55,7 +55,7 @@ for episode in range(numEpisodes):
     state = stateToTensor(state).to(device=device)
     episodeReward = 0
     valueLossEp = 0
-    updatesEpisode = 0
+    updatesEpisode = 1
     while True:
         action = agent.selectAction(state, None, None)
         nextState, reward, done, _ = env.step(action.cpu().numpy()[0])
