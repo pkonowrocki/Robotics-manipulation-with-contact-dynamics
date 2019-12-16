@@ -8,15 +8,16 @@ from utils import stateToTensor
 import argparse
 
 parser = argparse.ArgumentParser(description = "RL project")
-parser.add_argument('--name', default='run10')
-parser.add_argument('--gamma', default=0.99, type=float)
-parser.add_argument('--tau', type=float, default=0.001)
-parser.add_argument('--seed', type=int, default=4)
-parser.add_argument('--batchSize', type=int, default=128)
-parser.add_argument('--numEpisodes', type=int, default=100000)
-parser.add_argument('--hiddenSize', type=int, default=128)
-parser.add_argument('--updatesPerStep', type=int, default=5)
-parser.add_argument('--memorySize', type=int, default=2000000)
+parser.add_argument('--name', default='run10', help='Name of experiment (default: run10)')
+parser.add_argument('--gamma', default=0.99, type=float, help='Gamma value (default: 0.99)')
+parser.add_argument('--tau', type=float, default=0.001, help='Tau value (default: 0.001)')
+parser.add_argument('--seed', type=int, default=4, help='')
+parser.add_argument('--batchSize', type=int, default=128, help='Learning batch size (default: 128)')
+parser.add_argument('--numEpisodes', type=int, default=100000, help='Number of episodes (default: 100000)')
+parser.add_argument('--hiddenSize', type=int, default=128, help='Number of hidden neurons (default: 128)')
+parser.add_argument('--updatesPerStep', type=int, default=5, help='Number of updates per step (default: 5)')
+parser.add_argument('--memorySize', type=int, default=2000000, help='Memory size (default: 2000000)')
+parser.add_argument('--verbose', type=bool, default=False, help='Verbose output (default: False)')
 args = parser.parse_args()
 
 run = args.name
@@ -27,6 +28,7 @@ hiddenSize = args.hiddenSize
 memorySize = args.memorySize
 numEpisodes = args.numEpisodes
 updatesPerStep = args.updatesPerStep
+verbose = args.verbose
 
 if not os.path.exists(f'./models'):
     os.mkdir(f'./models')
@@ -55,19 +57,14 @@ rewards = []
 
 for episode in range(numEpisodes):
     state = env.reset()
-    print(f'Episode {episode}')
     state = stateToTensor(state).to(device)
-    print(f'State to tensor')
     episodeReward = 0
     valueLossEp = 0
     updatesEpisode = 1
     while True:
-        print(f'Select action')
         action = agent.selectAction(state, None, None)
-        print(f'Selected: {action.cpu().numpy()[0]}')
 
         nextState, reward, done, _ = env.step(action.cpu().numpy()[0])
-        print('Step taken')
         totalNumSteps += 1
         episodeReward += reward
 
@@ -76,13 +73,11 @@ for episode in range(numEpisodes):
         nextState = stateToTensor(nextState)
         nextStateNumpy = nextState.cpu().numpy()
         reward = torch.Tensor([reward]).cpu().numpy()
-        print('Push to memory')
+        
         memory.push(state.cpu().numpy(), action, mask, nextStateNumpy, reward)
-        print('Pushed')
         state = nextState.to(device)
 
         if len(memory) > batchSize:
-            print('Training started')
             for _ in range(updatesPerStep):
                 transition = memory.sample(batchSize)
                 batch = Transition(*zip(*transition))
@@ -113,7 +108,8 @@ for episode in range(numEpisodes):
 
         agent.saveModel(f"models/{run}_h{hiddenSize}_b{batchSize}/naf_e{episode}.model")
         
-        # print(f"Episode: {episode+1}, total numsteps: {totalNumSteps}, reward: {rewards[-1]}, average reward: {np.mean(rewards)}")
+        if verbose:
+            print(f"Episode: {episode}, total numsteps: {totalNumSteps}, reward: {rewards[:-checkEvery]}, average reward: {np.mean(rewards)}")
         with open(f"models/{run}_h{hiddenSize}_b{batchSize}/{run}_agentTraining.csv", "a+") as f:
             f.write(f'{episode}, {totalNumSteps}, {episodeReward/checkEvery}, {np.mean(rewards)/checkEvery}, {valueLossEp/updatesEpisode}\n')
 
