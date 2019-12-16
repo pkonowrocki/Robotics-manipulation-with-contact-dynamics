@@ -35,11 +35,11 @@ class NAF:
         return mu.clamp(-1, 1)
 
     def updateParameters(self, batch, device):
-        stateBatch = torch.cat(torch.Tensor(batch.state)).to(device)
-        actionBatch = torch.cat(torch.Tensor(batch.action)).to(device)
-        rewardBatch = torch.cat(torch.Tensor(batch.reward)).to(device)
-        maskBatch = torch.cat(torch.Tensor(batch.mask)).to(device)
-        nextStateBatch = torch.cat(torch.Tensor(batch.nextState)).to(device)
+        stateBatch = torch.Tensor(np.concatenate(batch.state)).to(device)
+        actionBatch = torch.Tensor(np.concatenate(batch.action)).to(device)
+        rewardBatch = torch.Tensor(np.concatenate(batch.reward)).to(device)
+        maskBatch = torch.Tensor(np.concatenate(batch.mask)).to(device)
+        nextStateBatch = torch.Tensor(np.concatenate(batch.nextState)).to(device)
 
         _, _, nextStateValues = self.target((nextStateBatch, None))
 
