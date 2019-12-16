@@ -17,8 +17,8 @@ class NAF:
     def __init__(self, gamma, tau, hiddenSize, numInputs, actionSpace, device = torch.device('cpu')):
         self.actionSpace = actionSpace
         self.numInputs = numInputs
-        self.model = p.Policy(hiddenSize, numInputs, actionSpace).to(device=device)
-        self.target = p.Policy(hiddenSize, numInputs, actionSpace).to(device=device)
+        self.model = p.Policy(hiddenSize, numInputs, actionSpace, device).to(device=device)
+        self.target = p.Policy(hiddenSize, numInputs, actionSpace, device).to(device=device)
         self.optimizer = Adam(self.model.parameters())
         self.gamma = gamma
         self.tau = tau

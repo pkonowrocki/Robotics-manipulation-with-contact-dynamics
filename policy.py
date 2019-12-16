@@ -5,9 +5,9 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 
 class Policy(nn.Module):
-    def __init__(self, hiddenSize, numInputs, actionSpace):
+    def __init__(self, hiddenSize, numInputs, actionSpace, device):
         super(Policy, self).__init__()
-
+        self.device = device
         self.actionSpace = actionSpace
         numOutputs = actionSpace.shape[0]
 
@@ -25,9 +25,9 @@ class Policy(nn.Module):
 
         self.L = nn.Linear(hiddenSize, numOutputs*numOutputs)
 
-        self.trilMask = Variable(torch.tril(torch.ones(numOutputs, numOutputs), diagonal=-1).unsqueeze(0))
+        self.trilMask = torch.tril(torch.ones(numOutputs, numOutputs), diagonal=-1).unsqueeze(0).to(device)
 
-        self.diagMask = Variable(torch.diag(torch.ones(numOutputs, numOutputs))).unsqueeze(0)
+        self.diagMask = torch.diag(torch.ones(numOutputs, numOutputs)).unsqueeze(0).to(device)
         self.tanh = torch.tanh
 
     def forward(self, inputs):
@@ -42,7 +42,7 @@ class Policy(nn.Module):
         Q = None
         if u is not None:
             numOutputs = mu.size(1)
-            L = self.L(x).view(-1, numOutputs, numOutputs)
+            L = self.L(x).view(-1, numOutputs, numOutputs).to(self.device)
             L = L * self.trilMask.expand_as(L) + torch.exp(L) * self.diagMask.expand_as(L)
             P = torch.bmm(L, L.transpose(2, 1))
             uMu = (u-mu).unsqueeze(2)
