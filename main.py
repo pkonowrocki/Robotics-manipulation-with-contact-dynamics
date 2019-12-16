@@ -77,7 +77,7 @@ for episode in range(numEpisodes):
         nextStateNumpy = nextState.cpu().numpy()
         reward = torch.Tensor([reward]).cpu().numpy()
         print('Push to memory')
-        memory.push(state, action, mask, nextStateNumpy, reward)
+        memory.push(state.cpu().numpy(), action, mask, nextStateNumpy, reward)
         print('Pushed')
         state = nextState.to(device)
 
