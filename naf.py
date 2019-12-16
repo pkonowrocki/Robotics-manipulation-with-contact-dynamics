@@ -4,6 +4,7 @@ from torch.optim import Adam
 from torch.autograd import Variable
 import torch.nn.functional as F
 import policy as p
+import numpy as np
 
 def softUpdate(target, source, tau):
     for targetParam, sourceParam in zip(target.parameters(), source.parameters()):
