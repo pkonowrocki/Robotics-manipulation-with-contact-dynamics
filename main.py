@@ -36,7 +36,7 @@ if not os.path.exists(f"./models/{run}_h{hiddenSize}_b{batchSize}"):
     print(f"Created models/{run}_h{hiddenSize}_b{batchSize}")
 
 if torch.cuda.is_available():
-    device = torch.device('cuda')
+    device = torch.device('cuda:0')
     print('cuda')
 else:
     device = torch.device('cpu')
