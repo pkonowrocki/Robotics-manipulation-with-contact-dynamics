@@ -22,16 +22,17 @@ class NAF:
         self.optimizer = Adam(self.model.parameters())
         self.gamma = gamma
         self.tau = tau
+        self.device = device
 
         hardUpdate(self.target, self.model)
 
-    def selectAction(self, state, actionNoise = None, paramNoise = None):
+    def selectAction(self, state, actionNoise = False):
         self.model.eval()
-        mu, _, _ = self.model((Variable(state), None))
+        mu, _, _ = self.model((state, None))
         self.model.train()
         mu = mu.data
-        if actionNoise is not None:
-            mu += torch.Tensor(actionNoise.noise())
+        if actionNoise:
+            mu += torch.Tensor(np.random.standard_normal(mu.shape)).to(self.device)
 
         return mu.clamp(-1, 1)
 

@@ -21,3 +21,10 @@ class Memory:
 
     def __len__(self):
         return len(self.memory)
+
+    def append(self, shortMemory):
+        for transition in shortMemory.memory:
+            if len(self.memory) < self.capacity:
+                self.memory.append(None)
+            self.memory[self.position] = transition
+            self.position = (self.position + 1) % self.capacity
