@@ -117,7 +117,7 @@ for episode in range(numEpisodes):
             orginalDistance = np.linalg.norm(startingPositionPuck - desiredGoal)
             while True:
                 state = stateToTensor(state).to(device=device)
-                env.render()
+                #env.render()
                 action = agent.selectAction(state)
                 nextState, reward, done, _ = env.step(action.cpu().numpy()[0])
                 currentDistance = np.linalg.norm(desiredGoal - state.cpu().numpy()[0,-3:])
