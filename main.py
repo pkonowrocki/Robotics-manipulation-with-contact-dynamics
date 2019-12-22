@@ -131,8 +131,8 @@ for episode in range(numEpisodes):
         agent.saveModel(f"models/{run}_h{hiddenSize}_b{batchSize}/naf_e{episode}.model")
         
         if verbose:
-            print(f"Episode: {episode}, total numsteps: {totalNumSteps}, test reward: {np.mean(testRewards).item()}, average reward: {np.mean(rewards).item()}, avg (last 5) reward: {np.mean(rewards[:-5]).item()}")
+            print(f"Episode: {episode}, total numsteps: {totalNumSteps}, test reward: {np.mean(testRewards).item()}, average reward: {np.mean(rewards).item()}, avg (last 5) reward: {np.mean(rewards[:-checkEvery]).item()}")
         with open(f"models/{run}_h{hiddenSize}_b{batchSize}/{run}_agentTraining.csv", "a+") as f:
-            f.write(f'{episode}, {totalNumSteps}, {np.mean(testRewards).item()}, {np.mean(rewards).item()}, {np.mean(rewards[:-5]).item()}, {valueLossEp/updatesEpisode}\n')
+            f.write(f'{episode}, {totalNumSteps}, {np.mean(testRewards).item()}, {np.mean(rewards).item()}, {np.mean(rewards[:-checkEvery]).item()}, {valueLossEp/updatesEpisode}\n')
 
 env.close()
