@@ -69,7 +69,7 @@ for episode in range(numEpisodes):
     valueLossEp = 0
     updatesEpisode = 1
     while True:
-        action = agent.selectAction(state, True)
+        action = agent.selectAction(state, np.random.sample() > 0.1)
         action = action.cpu().numpy()
         nextState, reward, done, _ = env.step(action[0])
         totalNumSteps += 1
@@ -83,7 +83,9 @@ for episode in range(numEpisodes):
         shortMemory.push(state, action, mask, nextStateNumpy, reward) 
 
         if done:
-            if np.linalg.norm(startingPositionPuck - state[0,-3:]) > 0.1*orginalDistance and state[0, -1:]>0.4:
+            if np.linalg.norm(startingPositionPuck - state[0,-3:]) > 0.1*orginalDistance:
+                with open(f"models/HER_{run}_h{hiddenSize}_b{batchSize}/{run}_agentTraining.csv", "a+") as f:
+                    f.write(f'{episode}, {startingPositionPuck}, {state[0,-3:]}\n')
                 episodeReward = 0
                 orginalDistance = np.linalg.norm(startingPositionPuck - state[0,-3:])
                 for i in range(len(shortMemory.memory)):
@@ -133,6 +135,6 @@ for episode in range(numEpisodes):
         if verbose:
             print(f"Episode: {episode}, total numsteps: {totalNumSteps}, test reward: {np.mean(testRewards).item()}, average reward: {np.mean(rewards).item()}, avg (last 5) reward: {np.mean(rewards[:-checkEvery]).item()}")
         with open(f"models/{run}_h{hiddenSize}_b{batchSize}/{run}_agentTraining.csv", "a+") as f:
-            f.write(f'{episode}, {totalNumSteps}, {np.mean(testRewards).item()}, {np.mean(rewards).item()}, {np.mean(rewards[:-checkEvery]).item()}, {valueLossEp/updatesEpisode}\n')
+            f.write(f'{episode}, {totalNumSteps}, {np.mean(testRewards).item()}, {np.mean(rewards).item()}, {np.mean(rewards[:-checkEvery]).item()}, {valueLossEp/(updatesEpisode*batchSize)}\n')
 
 env.close()
