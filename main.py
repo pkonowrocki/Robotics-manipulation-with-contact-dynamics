@@ -53,7 +53,7 @@ env = gym.make('FetchSlide-v1')
 print("Env created")
 state = env.reset()
 print(f'Env tested: {state}')
-agent = NAF(gamma, tau, hiddenSize, env.observation_space["observation"].shape[0] + env.observation_space["achieved_goal"].shape[0] + env.observation_space["desired_goal"].shape[0], env.action_space, device)
+agent = NAF(gamma, tau, hiddenSize, env.observation_space["observation"].shape[0] + env.observation_space["achieved_goal"].shape[0] + env.observation_space["desired_goal"].shape[0], env.action_space.shape[0], device)
 print("Agent created")
 totalNumSteps = 0
 updates = 0
@@ -102,7 +102,7 @@ for episode in range(numEpisodes):
             for _ in range(updatesPerStep):
                 transition = memory.sample(batchSize)
                 batch = Transition(*zip(*transition))
-                valueLoss, policyLoss = agent.updateParameters(batch, device)
+                valueLoss = agent.updateParameters(batch, device)
                 valueLossEp += valueLoss
 
     memory.append(shortMemory)

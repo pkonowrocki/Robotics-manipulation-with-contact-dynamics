@@ -15,16 +15,16 @@ def hardUpdate(target, source):
 
 class NAF:
     def __init__(self, gamma, tau, hiddenSize, numInputs, actionSpace, device = torch.device('cpu')):
+        self.device = device
         self.actionSpace = actionSpace
         self.numInputs = numInputs
         self.model = p.Policy(hiddenSize, numInputs, actionSpace, device).to(device=device)
         self.target = p.Policy(hiddenSize, numInputs, actionSpace, device).to(device=device)
-        self.optimizer = Adam(self.model.parameters())
+        hardUpdate(self.target, self.model)
         self.gamma = gamma
         self.tau = tau
-        self.device = device
-
-        hardUpdate(self.target, self.model)
+        self.optimizer = Adam(self.model.parameters())
+        self.loss = torch.nn.MSELoss(reduction='sum')
 
     def selectAction(self, state, actionNoise = False):
         self.model.eval()
@@ -33,35 +33,33 @@ class NAF:
         mu = mu.data
         if actionNoise:
             mu += torch.Tensor(np.random.standard_normal(mu.shape)).to(self.device)
-
         return mu.clamp(-1, 1)
 
     def updateParameters(self, batch, device):
+        #Sample a random minibatch of m transitions
         stateBatch = torch.Tensor(np.concatenate(batch.state)).to(device)
         actionBatch = torch.Tensor(np.concatenate(batch.action)).to(device)
         rewardBatch = torch.Tensor(np.concatenate(batch.reward)).to(device)
         maskBatch = torch.Tensor(np.concatenate(batch.mask)).to(device)
         nextStateBatch = torch.Tensor(np.concatenate(batch.nextState)).to(device)
-
+        
+        #Set y_i = r_i + gamma*V'(x_t+1 | Q')
         _, _, nextStateValues = self.target((nextStateBatch, None))
-
         rewardBatch = rewardBatch.unsqueeze(1)
         maskBatch = maskBatch.unsqueeze(1)
-
         expectedStateActionValues = rewardBatch + (self.gamma * maskBatch + nextStateValues)
 
+        #Update Q by minimizing the loss
         _, stateActionValues, _ = self.model((stateBatch, actionBatch))
-
-        loss = F.mse_loss(stateActionValues, expectedStateActionValues)
-
+        loss = self.loss(stateActionValues, expectedStateActionValues)
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
         self.optimizer.step()
 
+        #Update the target network Q'
         softUpdate(self.target, self.model, self.tau)
-
-        return loss.item(), 0
+        return loss.item()
 
     def saveModel(self, modelPath):
         torch.save(self.model.state_dict(), modelPath)
