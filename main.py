@@ -67,7 +67,6 @@ for episode in range(numEpisodes):
     orginalDistance = np.linalg.norm(startingPositionPuck - desiredGoal)
     state = stateToTensor(state).to(device)
     valueLossEp = 0
-    updatesEpisode = 1
     while True:
         action = agent.selectAction(state, np.random.sample() > 0.1)
         action = action.cpu().numpy()
@@ -135,6 +134,6 @@ for episode in range(numEpisodes):
         if verbose:
             print(f"Episode: {episode}, total numsteps: {totalNumSteps}, test reward: {np.mean(testRewards).item()}, average reward: {np.mean(rewards).item()}, avg (last 5) reward: {np.mean(rewards[:-checkEvery]).item()}")
         with open(f"models/{run}_h{hiddenSize}_b{batchSize}/{run}_agentTraining.csv", "a+") as f:
-            f.write(f'{episode}, {totalNumSteps}, {np.mean(testRewards).item()}, {np.mean(rewards).item()}, {np.mean(rewards[:-checkEvery]).item()}, {valueLossEp/(updatesEpisode*batchSize)}\n')
+            f.write(f'{episode}, {totalNumSteps}, {np.mean(testRewards).item()}, {np.mean(rewards).item()}, {np.mean(rewards[:-checkEvery]).item()}, {valueLossEp/(updatesPerStep*batchSize)}\n')
 
 env.close()
