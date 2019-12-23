@@ -15,7 +15,6 @@ class Policy(nn.Module):
             nn.BatchNorm1d(numInputs),
             nn.Linear(numInputs, 2*hiddenSize),
             nn.PReLU(2*hiddenSize),
-            nn.BatchNorm1d(2*hiddenSize),
             nn.Linear(2*hiddenSize, hiddenSize),
             nn.PReLU(hiddenSize),
             nn.Linear(hiddenSize, 1))
@@ -24,20 +23,19 @@ class Policy(nn.Module):
             nn.BatchNorm1d(numInputs),
             nn.Linear(numInputs, 2*hiddenSize),
             nn.PReLU(2*hiddenSize),
-            nn.BatchNorm1d(2*hiddenSize),
             nn.Linear(2*hiddenSize, hiddenSize),
             nn.PReLU(hiddenSize),
             nn.Linear(hiddenSize, hiddenSize),
-            nn.PReLU(),
+            nn.PReLU(hiddenSize),
             nn.Linear(hiddenSize, numOutputs),
             nn.Tanh())
 
         self.L = nn.Sequential(
             nn.BatchNorm1d(numInputs),
-            nn.Linear(hiddenSize, hiddenSize),
+            nn.Linear(numInputs, hiddenSize),
             nn.PReLU(hiddenSize),
             nn.Linear(hiddenSize, numOutputs*numOutputs),
-            nn.PReLU(),
+            nn.PReLU(numOutputs*numOutputs),
             nn.Linear(numOutputs*numOutputs, numOutputs*numOutputs))
 
         self.trilMask = torch.tril(torch.ones(numOutputs, numOutputs), diagonal=-1).unsqueeze(0).to(device)
