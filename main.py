@@ -83,7 +83,7 @@ for episode in range(numEpisodes):
 
         if done:
             if np.linalg.norm(startingPositionPuck - state[0,-3:]) > 0.1*orginalDistance:
-                with open(f"models/HER_{run}_h{hiddenSize}_b{batchSize}/{run}_agentTraining.csv", "a+") as f:
+                with open(f"models/{run}_h{hiddenSize}_b{batchSize}/HER_{run}_agentTraining.csv", "a+") as f:
                     f.write(f'{episode}, {startingPositionPuck}, {state[0,-3:]}\n')
                 episodeReward = 0
                 orginalDistance = np.linalg.norm(startingPositionPuck - state[0,-3:])
