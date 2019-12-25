@@ -23,7 +23,7 @@ class NAF:
         hardUpdate(self.target, self.model)
         self.gamma = gamma
         self.tau = tau
-        self.optimizer = Adam(self.model.parameters())
+        self.optimizer = Adam(self.model.parameters(), lr=1e-4, weight_decay=1e-5)
         self.loss = torch.nn.MSELoss(reduction='sum')
 
     def selectAction(self, state, actionNoise = False):
