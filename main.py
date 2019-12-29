@@ -119,6 +119,7 @@ for episode in range(numEpisodes):
                 state = stateToTensor(state).to(device=device)
                 #env.render()
                 action = agent.selectAction(state)
+                action = action.cpu().numpy()
                 nextState, reward, done, _ = env.step(np.concatenate((action[0], [0])))
                 currentDistance = np.linalg.norm(desiredGoal - state.cpu().numpy()[0,-3:])
                 episodeReward = -currentDistance/orginalDistance
