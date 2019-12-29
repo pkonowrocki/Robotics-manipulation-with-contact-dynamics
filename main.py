@@ -53,7 +53,7 @@ env = gym.make('FetchSlide-v1')
 print("Env created")
 state = env.reset()
 print(f'Env tested: {state}')
-agent = NAF(gamma, tau, hiddenSize, env.observation_space["observation"].shape[0] + env.observation_space["achieved_goal"].shape[0] + env.observation_space["desired_goal"].shape[0], env.action_space.shape[0], device)
+agent = NAF(gamma, tau, hiddenSize, env.observation_space["observation"].shape[0] + env.observation_space["achieved_goal"].shape[0] + env.observation_space["desired_goal"].shape[0], env.action_space.shape[0] - 1, device)
 print("Agent created")
 totalNumSteps = 0
 updates = 0
@@ -70,7 +70,7 @@ for episode in range(numEpisodes):
     while True:
         action = agent.selectAction(state, np.random.sample() > 0.1)
         action = action.cpu().numpy()
-        nextState, reward, done, _ = env.step(action[0])
+        nextState, reward, done, _ = env.step(np.concatenate((action[0], [0])))
         totalNumSteps += 1
         state = state.cpu().numpy()
         mask = np.array([not done])
@@ -119,7 +119,7 @@ for episode in range(numEpisodes):
                 state = stateToTensor(state).to(device=device)
                 #env.render()
                 action = agent.selectAction(state)
-                nextState, reward, done, _ = env.step(action.cpu().numpy()[0])
+                nextState, reward, done, _ = env.step(np.concatenate((action[0], [0])))
                 currentDistance = np.linalg.norm(desiredGoal - state.cpu().numpy()[0,-3:])
                 episodeReward = -currentDistance/orginalDistance
                 state = nextState
