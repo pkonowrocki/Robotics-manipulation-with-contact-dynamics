@@ -7,6 +7,8 @@ import os
 from utils import stateToTensor
 import argparse
 
+desiredGoal = np.array([1.52393724, 0.8054561 , 0.41401894])
+
 parser = argparse.ArgumentParser(description = "RL project")
 parser.add_argument('--name', default='run10', help='Name of experiment (default: run10)')
 parser.add_argument('--gamma', default=0.99, type=float, help='Gamma value (default: 0.99)')
@@ -63,9 +65,8 @@ for episode in range(numEpisodes):
     shortMemory = Memory(memorySize)
     state = env.reset()
     startingPositionPuck = state["achieved_goal"]
-    desiredGoal = state["desired_goal"]
     orginalDistance = np.linalg.norm(startingPositionPuck - desiredGoal)
-    state = stateToTensor(state).to(device)
+    state = stateToTensor(state,desiredGoal).to(device)
     valueLossEp = 0
     while True:
         action = agent.selectAction(state, np.random.sample() > 0.1)
@@ -74,7 +75,7 @@ for episode in range(numEpisodes):
         totalNumSteps += 1
         state = state.cpu().numpy()
         mask = np.array([not done])
-        nextState = stateToTensor(nextState)
+        nextState = stateToTensor(nextState, desiredGoal)
         nextStateNumpy = nextState.cpu().numpy()
         currentDistance = np.linalg.norm(desiredGoal - state[0,-3:])
         reward = np.array([-currentDistance/orginalDistance])
@@ -82,18 +83,6 @@ for episode in range(numEpisodes):
         shortMemory.push(state, action, mask, nextStateNumpy, reward) 
 
         if done:
-            if np.linalg.norm(startingPositionPuck - state[0,-3:]) > 0.1*orginalDistance:
-                with open(f"models/{run}_h{hiddenSize}_b{batchSize}/HER_{run}_agentTraining.csv", "a+") as f:
-                    f.write(f'{episode}, {startingPositionPuck}, {state[0,-3:]}\n')
-                orginalDistance = np.linalg.norm(startingPositionPuck - state[0,-3:])
-                for i in range(len(shortMemory.memory)):
-                    newState = np.array([np.concatenate((shortMemory.memory[i].state[0, 0:25], state[0,-3:], shortMemory.memory[i].state[0, -3:]))])
-                    newReward = np.array([-np.linalg.norm(shortMemory.memory[i].state[0, -3:] - state[0,-3:])/orginalDistance])
-                    shortMemory.memory[i] = Transition(newState, shortMemory.memory[i].action, shortMemory.memory[i].mask, shortMemory.memory[i].nextState, newReward)
-                    
-                    if i > 0:
-                        newNextState = np.array([np.concatenate((shortMemory.memory[i-1].nextState[0, 0:25], state[0,-3:], shortMemory.memory[i-1].nextState[0, -3:]))])
-                        shortMemory.memory[i-1] = Transition(shortMemory.memory[i-1].state, shortMemory.memory[i-1].action, shortMemory.memory[i-1].mask, newNextState, shortMemory.memory[i-1].reward)
             break
         else:
             state = nextState.to(device)
@@ -113,10 +102,9 @@ for episode in range(numEpisodes):
         for _ in range(numberOfTests):    
             state = env.reset()
             startingPositionPuck = state["achieved_goal"]
-            desiredGoal = state["desired_goal"]
             orginalDistance = np.linalg.norm(startingPositionPuck - desiredGoal)
             while True:
-                state = stateToTensor(state).to(device=device)
+                state = stateToTensor(state, desiredGoal).to(device=device)
                 #env.render()
                 action = agent.selectAction(state)
                 action = action.cpu().numpy()
