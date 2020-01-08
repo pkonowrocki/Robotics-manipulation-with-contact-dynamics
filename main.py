@@ -4,7 +4,7 @@ from naf import NAF
 from memory import Memory, Transition
 import torch
 import os
-from utils import stateToTensor
+from utils import stateToTensor, calcReward
 import argparse
 
 desiredGoal = np.array([1.52393724, 0.8054561 , 0.41401894])
@@ -69,7 +69,7 @@ for episode in range(numEpisodes):
     state = stateToTensor(state,desiredGoal).to(device)
     valueLossEp = 0
     while True:
-        action = agent.selectAction(state, np.random.sample() > 0.1)
+        action = agent.selectAction(state, np.random.sample() > 0.2)
         action = action.cpu().numpy()
         nextState, reward, done, _ = env.step(np.concatenate((action[0], [0])))
         totalNumSteps += 1
@@ -77,8 +77,7 @@ for episode in range(numEpisodes):
         mask = np.array([not done])
         nextState = stateToTensor(nextState, desiredGoal)
         nextStateNumpy = nextState.cpu().numpy()
-        currentDistance = np.linalg.norm(desiredGoal - state[0,-3:])
-        reward = np.array([-currentDistance/orginalDistance])
+        reward = calcReward(state[0,-3:], desiredGoal, orginalDistance)
         episodeReward = reward
         shortMemory.push(state, action, mask, nextStateNumpy, reward) 
 
@@ -109,8 +108,7 @@ for episode in range(numEpisodes):
                 action = agent.selectAction(state)
                 action = action.cpu().numpy()
                 nextState, reward, done, _ = env.step(np.concatenate((action[0], [0])))
-                currentDistance = np.linalg.norm(desiredGoal - state.cpu().numpy()[0,-3:])
-                episodeReward = -currentDistance/orginalDistance
+                episodeReward = calcReward(state.cpu().numpy()[0,-3:], desiredGoal, orginalDistance)
                 state = nextState
                 if done:
                     break
