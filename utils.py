@@ -6,4 +6,4 @@ def stateToTensor(state, goal):
 
 def calcReward(state, goal, orginalDistance):
     currentDistance = np.linalg.norm(goal - state)
-    return np.array([-np.expm1(currentDistance/orginalDistance)])
+    return np.array([np.exp(-10*currentDistance/orginalDistance)-1])
