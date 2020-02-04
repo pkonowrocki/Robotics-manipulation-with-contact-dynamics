@@ -105,7 +105,7 @@ for episode in range(numEpisodes):
             while True:
                 state = stateToTensor(state, desiredGoal).to(device=device)
                 #env.render()
-                action = agent.selectAction(state, target = True)
+                action = agent.selectAction(state, useTarget = True)
                 action = action.cpu().numpy()
                 nextState, reward, done, _ = env.step(np.concatenate((action[0], [0])))
                 episodeReward = calcReward(state.cpu().numpy()[0,-3:], desiredGoal, orginalDistance)
