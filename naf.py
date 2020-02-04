@@ -26,10 +26,13 @@ class NAF:
         self.optimizer = Adam(self.model.parameters(), lr=1e-4, weight_decay=1e-5)
         self.loss = torch.nn.MSELoss(reduction='sum')
 
-    def selectAction(self, state, actionNoise = False):
-        self.model.eval()
-        mu, _, _ = self.model((state, None))
-        self.model.train()
+    def selectAction(self, state, actionNoise = False, target = False):
+        if (target):
+            mu, _, _ = self.target.((state,None))
+        else:
+            self.model.eval()
+            mu, _, _ = self.model((state, None))
+            self.model.train()
         mu = mu.data
         if actionNoise:
             mu += torch.Tensor(np.random.standard_normal(mu.shape)).to(self.device)
